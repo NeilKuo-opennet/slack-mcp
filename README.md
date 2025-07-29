@@ -85,11 +85,13 @@ Add to your MCP client configuration (e.g., Cursor's `mcp.json`):
   "mcpServers": {
     "slack-mcp": {
       "command": "node",
-      "args": ["dist/index.js"],
-      "cwd": "/path/to/slack-mcp",
-      "env": {
-        "SLACK_BOT_TOKEN": "xoxb-your-slack-bot-token-here"
-      }
+      "args": [
+        "YOUR_PATH/slack-mcp/dist/index.js",
+        "--token",
+        "YOUR TOKEN",
+        "--user-id",
+        "YOUR PERSONAL SLACK ID"
+      ]
     }
   }
 }
