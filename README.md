@@ -1,128 +1,268 @@
-# Slack MCP
+# Slack MCP Server
 
-一個簡單的 Model Context Protocol (MCP) 伺服器，用於 Slack 整合。
+A Model Context Protocol (MCP) server that provides seamless Slack integration for AI assistants. This server enables AI models to interact with Slack workspaces through a comprehensive set of tools for messaging, channel management, and user interactions.
 
-## 功能
+## 🚀 Features
 
-- 🚀 發送訊息到頻道或用戶
-- 📋 獲取頻道和用戶列表  
-- 📜 讀取頻道歷史訊息
-- 🔍 搜尋工作空間訊息
-- ⚙️ 創建頻道和邀請用戶
+### Core Slack Tools
+- **Message Management**: Send messages to channels and users
+- **Channel Operations**: List channels and retrieve message history
+- **User Management**: Get workspace user information
+- **Message Search**: Search across workspace messages
+- **Custom Tools**: Specialized tools for specific workflows
 
-## 快速開始
+### Special Features
+- **Smart Workday Calculation**: Automatically reads messages from the previous workday
+- **User-Specific Filtering**: Dedicated tool for reading specific user messages
+- **Rich Message Information**: Includes user details, timestamps, and thread information
+- **Flexible Time Ranges**: Support for custom date ranges and all-time searches
 
-### 1. 安裝依賴
+## 📋 Available Tools
 
-```bash
-npm install
-```
+| Tool Name | Description |
+|-----------|-------------|
+| `slack_send_message` | Send messages to channels or users |
+| `slack_get_channels` | Get list of workspace channels |
+| `slack_get_users` | Get list of workspace users |
+| `slack_get_channel_history` | Retrieve channel message history |
+| `slack_search_messages` | Search messages across workspace |
+| `read_frontend_ladisai_messages` | **Special**: Read Neil Kuo's messages from frontend-ladisai channel |
 
-### 2. 設置 Slack App
+## 🛠️ Installation
 
-1. 前往 [Slack API](https://api.slack.com/apps) 創建新的 Slack App
-2. 在 **OAuth & Permissions** 添加以下 Bot Token Scopes:
-   - `chat:write` - 發送訊息
-   - `channels:read` - 讀取頻道資訊
-   - `channels:history` - 讀取頻道歷史
-   - `users:read` - 讀取用戶資訊
-   - `search:read` - 搜尋訊息
-   - `channels:manage` - 管理頻道
-   - `groups:read` - 讀取私人頻道
+### Prerequisites
+- Node.js 18 or higher
+- npm or yarn
+- Slack Bot Token with appropriate permissions
 
-3. 安裝 App 到你的工作空間
-4. 複製 **Bot User OAuth Token**
+### Setup
 
-### 3. 配置環境變數
+1. **Clone and install dependencies**:
+   ```bash
+   git clone <repository-url>
+   cd slack-mcp
+   npm install
+   ```
 
-```bash
-cp .env.example .env
-```
+2. **Build the project**:
+   ```bash
+   npm run build
+   ```
 
-編輯 `.env` 文件，設置你的 Slack Bot Token：
+## ⚙️ Configuration
+
+### Environment Variables
+
+Create a `.env` file with the following:
 
 ```env
-SLACK_BOT_TOKEN=xoxb-your-actual-bot-token
+# Required: Slack Bot Token from https://api.slack.com/apps
 ```
 
-### 4. 建構和運行
+### Slack Bot Permissions
 
-```bash
-# 開發模式（自動重新建構）
-npm run dev
+Your Slack Bot needs the following OAuth scopes:
 
-# 或建構後運行
-npm run build
-npm start
-```
+#### Required Scopes
+- `channels:read` - Read public channels
+- `channels:history` - Read channel message history
+- `groups:read` - Read private channels
+- `groups:history` - Read private channel history
+- `users:read` - Read user information
+- `chat:write` - Send messages
+- `search:read` - Search messages
 
-## MCP 工具
+#### Optional Scopes
+- `channels:manage` - Create channels (if using channel creation tools)
+- `groups:write` - Manage private channels
 
-### 基本訊息操作
+### MCP Configuration
 
-- `slack_send_message` - 發送訊息到頻道或用戶
-- `slack_get_channel_history` - 獲取頻道歷史訊息
-- `slack_search_messages` - 搜尋工作空間訊息
+Add to your MCP client configuration (e.g., Cursor's `mcp.json`):
 
-### 資訊查詢
-
-- `slack_get_channels` - 獲取頻道列表
-- `slack_get_users` - 獲取用戶列表
-
-### 管理操作
-
-- `slack_create_channel` - 創建新頻道
-- `slack_invite_to_channel` - 邀請用戶到頻道
-
-## 使用範例
-
-### 發送訊息
 ```json
 {
+  "mcpServers": {
+    "slack-mcp": {
+      "command": "node",
+      "args": ["dist/index.js"],
+      "cwd": "/path/to/slack-mcp",
+      "env": {
+        "SLACK_BOT_TOKEN": "xoxb-your-slack-bot-token-here"
+      }
+    }
+  }
+}
+```
+
+## 🎯 Usage Examples
+
+### Basic Message Sending
+```typescript
+// Send a message to a channel
+{
   "tool": "slack_send_message",
-  "arguments": {
-    "channel": "#general",
+  "parameters": {
+    "channel": "general",
     "text": "Hello from MCP!"
   }
 }
-```
 
-### 搜尋訊息
-```json
+// Send a direct message to a user
 {
-  "tool": "slack_search_messages", 
-  "arguments": {
-    "query": "meeting notes",
-    "count": 10
+  "tool": "slack_send_message",
+  "parameters": {
+    "channel": "U1234567890",
+    "text": "Private message"
   }
 }
 ```
 
-## 技術棧
-
-- **Runtime**: Node.js 18+
-- **語言**: TypeScript
-- **建構工具**: tsup
-- **Slack SDK**: @slack/web-api
-- **MCP SDK**: @modelcontextprotocol/sdk
-
-## 開發
-
-```bash
-# 類型檢查
-npm run typecheck
-
-# 監視模式建構
-npm run dev
-
-# 一次性建構
-npm run build
+### Reading Channel History
+```typescript
+// Get recent messages from a channel
+{
+  "tool": "slack_get_channel_history",
+  "parameters": {
+    "channel": "frontend-ladisai",
+    "limit": 10
+  }
+}
 ```
 
-## 貢獻
+### Special: Reading Neil Kuo's Messages
+```typescript
+// Get Neil Kuo's latest messages (automatic workday detection)
+{
+  "tool": "read_frontend_ladisai_messages",
+  "parameters": {
+    "max_results": 5
+  }
+}
 
-歡迎 Pull Requests 和 Issues！
+// Get all-time latest messages
+{
+  "tool": "read_frontend_ladisai_messages",
+  "parameters": {
+    "all_time": true,
+    "max_results": 10
+  }
+}
 
-## 授權
+// Get messages from a specific date
+{
+  "tool": "read_frontend_ladisai_messages",
+  "parameters": {
+    "manual_date": "2025-01-27",
+    "max_results": 5
+  }
+}
+```
 
-MIT License 
+### User and Channel Information
+```typescript
+// List all users
+{
+  "tool": "slack_get_users",
+  "parameters": {
+    "limit": 100
+  }
+}
+
+// List all channels
+{
+  "tool": "slack_get_channels",
+  "parameters": {
+    "exclude_archived": true
+  }
+}
+```
+
+## 🔧 Development
+
+### Scripts
+- `npm run build` - Build the TypeScript project
+- `npm run dev` - Build and watch for changes
+- `npm start` - Start the MCP server
+- `npm run typecheck` - Run TypeScript type checking
+
+### Project Structure
+```
+slack-mcp/
+├── src/
+│   ├── index.ts              # Main MCP server
+│   ├── slack-client.ts       # Slack API client wrapper
+│   └── tools/
+│       ├── index.ts          # Tool registry
+│       ├── send-message.ts   # Message sending tool
+│       ├── get-channels.ts   # Channel listing tool
+│       ├── get-users.ts      # User listing tool
+│       ├── get-channel-history.ts  # Channel history tool
+│       ├── search-messages.ts      # Message search tool
+│       └── read-frontend-ladisai.ts # Custom Neil Kuo reader
+├── dist/                     # Compiled JavaScript
+├── package.json
+└── README.md
+```
+
+## 🔍 Smart Workday Logic
+
+The `read_frontend_ladisai_messages` tool includes intelligent workday calculation:
+
+- **Monday** → Reads Friday's messages (3 days back)
+- **Tuesday** → Reads Monday's messages (1 day back)
+- **Wednesday** → Reads Tuesday's messages (1 day back)
+- **Thursday** → Reads Wednesday's messages (1 day back)
+- **Friday** → Reads Thursday's messages (1 day back)
+- **Saturday** → Reads Friday's messages (1 day back)
+- **Sunday** → Reads Friday's messages (2 days back)
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+1. **"Failed to get channel list"**
+   - Check if your bot has `channels:read` permission
+   - Ensure the bot is added to the workspace
+
+2. **"Failed to get channel history"**
+   - Verify the bot has `channels:history` permission
+   - Check if the bot is invited to the specific channel
+
+3. **"Message sent successfully" but no message appears**
+   - Confirm the bot has `chat:write` permission
+   - Verify the channel name/ID is correct
+
+4. **MCP server not responding**
+   - Check if the build was successful: `npm run build`
+   - Verify environment variables are set correctly
+   - Restart your MCP client (e.g., Cursor)
+
+### Testing the Server
+```bash
+# Test if the server responds to tool list requests
+echo '{"jsonrpc": "2.0", "id": 1, "method": "tools/list", "params": {}}' | node dist/index.js
+```
+
+## 📝 License
+
+MIT License - see LICENSE file for details.
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
+
+## 📞 Support
+
+For issues and questions:
+- Check the troubleshooting section above
+- Review Slack API documentation
+- Check MCP protocol specifications
+
+---
+
+**Note**: This MCP server is optimized for the frontend-ladisai channel workflow and includes specialized tools for reading Neil Kuo's messages with smart workday detection. 
