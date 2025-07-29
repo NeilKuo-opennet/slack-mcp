@@ -6,6 +6,7 @@ import { getChannelHistoryTool } from './get-channel-history.js';
 import { createChannelTool } from './create-channel.js';
 import { inviteToChannelTool } from './invite-to-channel.js';
 import { searchMessagesTool } from './search-messages.js';
+import { readFrontendLadisaiTool } from './read-frontend-ladisai.js';
 
 export interface SlackTool {
   name: string;
@@ -19,7 +20,7 @@ export interface SlackTool {
 }
 
 /**
- * 創建所有 Slack 工具
+ * Create all Slack tools
  */
 export function createSlackTools(slackClient: SlackClient): SlackTool[] {
   return [
@@ -30,5 +31,6 @@ export function createSlackTools(slackClient: SlackClient): SlackTool[] {
     createChannelTool(slackClient),
     inviteToChannelTool(slackClient),
     searchMessagesTool(slackClient),
+    readFrontendLadisaiTool(slackClient), // 新增的專屬工具
   ];
 } 

@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-import 'dotenv/config';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import {
@@ -13,11 +12,21 @@ import { SlackClient } from './slack-client.js';
 import { createSlackTools } from './tools/index.js';
 
 async function main() {
-  // Get Slack token from environment variables
-  const slackToken = process.env.SLACK_BOT_TOKEN;
+  // 解析命令行參數
+  const args = process.argv.slice(2);
+  let slackToken = process.env.SLACK_BOT_TOKEN;
+
+  // 檢查命令行參數中的 token
+  const tokenIndex = args.indexOf('--token');
+  if (tokenIndex !== -1 && tokenIndex + 1 < args.length) {
+    slackToken = args[tokenIndex + 1];
+  }
   
   if (!slackToken) {
-    console.error('Error: Please set SLACK_BOT_TOKEN environment variable');
+    console.error('Error: Slack Bot Token is required');
+    console.error('Usage:');
+    console.error('  node dist/index.js --token xoxb-your-token-here');
+    console.error('  or set SLACK_BOT_TOKEN environment variable');
     process.exit(1);
   }
 
