@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import 'dotenv/config';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import {
@@ -12,15 +13,15 @@ import { SlackClient } from './slack-client.js';
 import { createSlackTools } from './tools/index.js';
 
 async function main() {
-  // 從環境變數獲取 Slack token
+  // Get Slack token from environment variables
   const slackToken = process.env.SLACK_BOT_TOKEN;
   
   if (!slackToken) {
-    console.error('錯誤：請設置 SLACK_BOT_TOKEN 環境變數');
+    console.error('Error: Please set SLACK_BOT_TOKEN environment variable');
     process.exit(1);
   }
 
-  // 創建 MCP 伺服器
+  // Create MCP server
   const server = new Server(
     {
       name: 'slack-mcp',
@@ -33,13 +34,13 @@ async function main() {
     }
   );
 
-  // 初始化 Slack 客戶端
+  // Initialize Slack client
   const slackClient = new SlackClient(slackToken);
   
-  // 創建工具
+  // Create tools
   const tools = createSlackTools(slackClient);
 
-  // 列出可用工具
+  // List available tools
   server.setRequestHandler(ListToolsRequestSchema, async () => {
     return {
       tools: tools.map((tool): Tool => ({
@@ -50,13 +51,13 @@ async function main() {
     };
   });
 
-  // 處理工具調用
+  // Handle tool calls
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const { name, arguments: args } = request.params;
     
     const tool = tools.find(t => t.name === name);
     if (!tool) {
-      throw new Error(`未知工具: ${name}`);
+      throw new Error(`Unknown tool: ${name}`);
     }
 
     try {
@@ -71,29 +72,29 @@ async function main() {
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      throw new Error(`工具執行失敗: ${errorMessage}`);
+      throw new Error(`Tool execution failed: ${errorMessage}`);
     }
   });
 
-  // 啟動伺服器
+  // Start server
   const transport = new StdioServerTransport();
   await server.connect(transport);
   
-  console.error('Slack MCP 伺服器已啟動');
+  console.error('Slack MCP server started');
 }
 
-// 錯誤處理
+// Error handling
 process.on('SIGINT', () => {
-  console.error('收到 SIGINT，正在關閉...');
+  console.error('Received SIGINT, shutting down...');
   process.exit(0);
 });
 
 process.on('unhandledRejection', (reason) => {
-  console.error('未處理的 Promise 拒絕:', reason);
+  console.error('Unhandled promise rejection:', reason);
   process.exit(1);
 });
 
 main().catch((error) => {
-  console.error('啟動失敗:', error);
+  console.error('Failed to start:', error);
   process.exit(1);
 }); 

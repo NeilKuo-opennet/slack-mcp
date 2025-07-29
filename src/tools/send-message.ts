@@ -4,21 +4,21 @@ import type { SlackTool } from './index.js';
 export function sendMessageTool(slackClient: SlackClient): SlackTool {
   return {
     name: 'slack_send_message',
-    description: '發送訊息到 Slack 頻道或用戶',
+    description: 'Send a message to a Slack channel or user',
     inputSchema: {
       type: 'object',
       properties: {
         channel: {
           type: 'string',
-          description: '頻道 ID 或名稱（如 #general）或用戶 ID',
+          description: 'Channel ID or name (e.g. #general) or user ID',
         },
         text: {
           type: 'string',
-          description: '要發送的訊息內容',
+          description: 'Message content to send',
         },
         thread_ts: {
           type: 'string',
-          description: '回覆特定訊息的時間戳（可選）',
+          description: 'Timestamp of the message to reply to (optional)',
         },
       },
       required: ['channel', 'text'],
@@ -34,7 +34,7 @@ export function sendMessageTool(slackClient: SlackClient): SlackTool {
 
       return {
         success: response.ok,
-        message: response.ok ? '訊息發送成功' : '訊息發送失敗',
+        message: response.ok ? 'Message sent successfully' : 'Failed to send message',
         timestamp: response.ts,
         channel: response.channel,
       };

@@ -4,26 +4,26 @@ import type { SlackTool } from './index.js';
 export function getChannelHistoryTool(slackClient: SlackClient): SlackTool {
   return {
     name: 'slack_get_channel_history',
-    description: '獲取 Slack 頻道的歷史訊息',
+    description: 'Get message history from a Slack channel',
     inputSchema: {
       type: 'object',
       properties: {
         channel: {
           type: 'string',
-          description: '頻道 ID 或名稱',
+          description: 'Channel ID or name',
         },
         limit: {
           type: 'number',
-          description: '返回的訊息數量限制（預設 50）',
+          description: 'Limit the number of messages returned (default 50)',
           default: 50,
         },
         oldest: {
           type: 'string',
-          description: '最舊訊息的時間戳（可選）',
+          description: 'Timestamp of the oldest message (optional)',
         },
         latest: {
           type: 'string',
-          description: '最新訊息的時間戳（可選）',
+          description: 'Timestamp of the latest message (optional)',
         },
       },
       required: ['channel'],
@@ -39,7 +39,7 @@ export function getChannelHistoryTool(slackClient: SlackClient): SlackTool {
       });
 
       if (!response.ok) {
-        throw new Error(`獲取頻道歷史失敗: ${response.error}`);
+        throw new Error(`Failed to get channel history: ${response.error}`);
       }
 
       const messages = response.messages?.map(message => ({

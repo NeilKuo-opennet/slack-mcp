@@ -4,17 +4,17 @@ import type { SlackTool } from './index.js';
 export function createChannelTool(slackClient: SlackClient): SlackTool {
   return {
     name: 'slack_create_channel',
-    description: '創建新的 Slack 頻道',
+    description: 'Create a new Slack channel',
     inputSchema: {
       type: 'object',
       properties: {
         name: {
           type: 'string',
-          description: '頻道名稱（必須小寫，可以包含連字符和底線）',
+          description: 'Channel name (must be lowercase, can contain hyphens and underscores)',
         },
         is_private: {
           type: 'boolean',
-          description: '是否為私人頻道（預設 false）',
+          description: 'Whether this is a private channel (default false)',
           default: false,
         },
       },
@@ -23,9 +23,9 @@ export function createChannelTool(slackClient: SlackClient): SlackTool {
     handler: async (args) => {
       const { name, is_private = false } = args;
       
-      // 驗證頻道名稱格式
+      // Validate channel name format
       if (!/^[a-z0-9_-]+$/.test(name)) {
-        throw new Error('頻道名稱只能包含小寫字母、數字、連字符和底線');
+        throw new Error('Channel name can only contain lowercase letters, numbers, hyphens and underscores');
       }
 
       const response = await slackClient.createChannel({
@@ -34,7 +34,7 @@ export function createChannelTool(slackClient: SlackClient): SlackTool {
       });
 
       if (!response.ok) {
-        throw new Error(`創建頻道失敗: ${response.error}`);
+        throw new Error(`Failed to create channel: ${response.error}`);
       }
 
       return {
@@ -45,7 +45,7 @@ export function createChannelTool(slackClient: SlackClient): SlackTool {
           is_private: response.channel?.is_private,
           created: response.channel?.created,
         },
-        message: `頻道 #${name} 創建成功`,
+        message: `Channel #${name} created successfully`,
       };
     },
   };

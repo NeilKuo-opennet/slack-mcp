@@ -4,17 +4,17 @@ import type { SlackTool } from './index.js';
 export function inviteToChannelTool(slackClient: SlackClient): SlackTool {
   return {
     name: 'slack_invite_to_channel',
-    description: '邀請用戶加入 Slack 頻道',
+    description: 'Invite users to join a Slack channel',
     inputSchema: {
       type: 'object',
       properties: {
         channel: {
           type: 'string',
-          description: '頻道 ID 或名稱',
+          description: 'Channel ID or name',
         },
         users: {
           type: 'string',
-          description: '用戶 ID，多個用戶用逗號分隔',
+          description: 'User IDs, separated by commas for multiple users',
         },
       },
       required: ['channel', 'users'],
@@ -28,16 +28,16 @@ export function inviteToChannelTool(slackClient: SlackClient): SlackTool {
       });
 
       if (!response.ok) {
-        throw new Error(`邀請用戶失敗: ${response.error}`);
+        throw new Error(`Failed to invite users: ${response.error}`);
       }
 
-      const userIds = users.split(',').map(id => id.trim());
+      const userIds = users.split(',').map((id: string) => id.trim());
 
       return {
         success: true,
         channel: response.channel?.id,
         invited_users: userIds,
-        message: `成功邀請 ${userIds.length} 位用戶加入頻道`,
+        message: `Successfully invited ${userIds.length} user(s) to channel`,
       };
     },
   };

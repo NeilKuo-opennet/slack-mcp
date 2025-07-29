@@ -4,23 +4,23 @@ import type { SlackTool } from './index.js';
 export function getChannelsTool(slackClient: SlackClient): SlackTool {
   return {
     name: 'slack_get_channels',
-    description: '獲取 Slack 工作空間的頻道列表',
+    description: 'Get a list of channels in the Slack workspace',
     inputSchema: {
       type: 'object',
       properties: {
         limit: {
           type: 'number',
-          description: '返回的頻道數量限制（預設 100）',
+          description: 'Limit the number of channels returned (default 100)',
           default: 100,
         },
         exclude_archived: {
           type: 'boolean',
-          description: '是否排除已封存的頻道（預設 true）',
+          description: 'Whether to exclude archived channels (default true)',
           default: true,
         },
         types: {
           type: 'string',
-          description: '頻道類型過濾（如 public_channel,private_channel）',
+          description: 'Channel types to filter (e.g. public_channel,private_channel)',
           default: 'public_channel,private_channel',
         },
       },
@@ -35,7 +35,7 @@ export function getChannelsTool(slackClient: SlackClient): SlackTool {
       });
 
       if (!response.ok) {
-        throw new Error(`獲取頻道列表失敗: ${response.error}`);
+        throw new Error(`Failed to get channel list: ${response.error}`);
       }
 
       const channels = response.channels?.map(channel => ({

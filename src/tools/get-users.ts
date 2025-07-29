@@ -4,13 +4,13 @@ import type { SlackTool } from './index.js';
 export function getUsersTool(slackClient: SlackClient): SlackTool {
   return {
     name: 'slack_get_users',
-    description: '獲取 Slack 工作空間的用戶列表',
+    description: 'Get a list of users in the Slack workspace',
     inputSchema: {
       type: 'object',
       properties: {
         limit: {
           type: 'number',
-          description: '返回的用戶數量限制（預設 100）',
+          description: 'Limit the number of users returned (default 100)',
           default: 100,
         },
       },
@@ -21,7 +21,7 @@ export function getUsersTool(slackClient: SlackClient): SlackTool {
       const response = await slackClient.getUsers({ limit });
 
       if (!response.ok) {
-        throw new Error(`獲取用戶列表失敗: ${response.error}`);
+        throw new Error(`Failed to get user list: ${response.error}`);
       }
 
       const users = response.members?.map(member => ({

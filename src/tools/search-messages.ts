@@ -4,22 +4,22 @@ import type { SlackTool } from './index.js';
 export function searchMessagesTool(slackClient: SlackClient): SlackTool {
   return {
     name: 'slack_search_messages',
-    description: '在 Slack 工作空間中搜尋訊息',
+    description: 'Search for messages in the Slack workspace',
     inputSchema: {
       type: 'object',
       properties: {
         query: {
           type: 'string',
-          description: '搜尋關鍵字或查詢表達式',
+          description: 'Search keywords or query expression',
         },
         count: {
           type: 'number',
-          description: '返回的結果數量（預設 20）',
+          description: 'Number of results to return (default 20)',
           default: 20,
         },
         page: {
           type: 'number',
-          description: '結果頁數（預設 1）',
+          description: 'Page number of results (default 1)',
           default: 1,
         },
       },
@@ -34,7 +34,7 @@ export function searchMessagesTool(slackClient: SlackClient): SlackTool {
       });
 
       if (!response.ok) {
-        throw new Error(`搜尋訊息失敗: ${response.error}`);
+        throw new Error(`Failed to search messages: ${response.error}`);
       }
 
       const messages = response.messages?.matches?.map(match => ({
