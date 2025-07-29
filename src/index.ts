@@ -12,20 +12,25 @@ import { SlackClient } from './slack-client.js';
 import { createSlackTools } from './tools/index.js';
 
 async function main() {
-  // 解析命令行參數
-  const args = process.argv.slice(2);
-  let slackToken = process.env.SLACK_BOT_TOKEN;
 
-  // 檢查命令行參數中的 token
+  const args = process.argv.slice(2);
+  let slackToken: string | undefined = undefined;
+  let userId: string | undefined = undefined;
+
   const tokenIndex = args.indexOf('--token');
   if (tokenIndex !== -1 && tokenIndex + 1 < args.length) {
     slackToken = args[tokenIndex + 1];
   }
   
+  const userIdIndex = args.indexOf('--user-id');
+  if (userIdIndex !== -1 && userIdIndex + 1 < args.length) {
+    userId = args[userIdIndex + 1];
+  }
+  
   if (!slackToken) {
     console.error('Error: Slack Bot Token is required');
     console.error('Usage:');
-    console.error('  node dist/index.js --token xoxb-your-token-here');
+    console.error('  node dist/index.js --token xoxb-your-token-here [--user-id U123456789]');
     console.error('  or set SLACK_BOT_TOKEN environment variable');
     process.exit(1);
   }
@@ -47,7 +52,7 @@ async function main() {
   const slackClient = new SlackClient(slackToken);
   
   // Create tools
-  const tools = createSlackTools(slackClient);
+  const tools = createSlackTools(slackClient, userId);
 
   // List available tools
   server.setRequestHandler(ListToolsRequestSchema, async () => {

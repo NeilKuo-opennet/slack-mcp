@@ -20,13 +20,13 @@ export interface SlackTool {
 /**
  * Create all Slack tools
  */
-export function createSlackTools(slackClient: SlackClient): SlackTool[] {
+export function createSlackTools(slackClient: SlackClient, userId?: string): SlackTool[] {
   return [
     sendMessageTool(slackClient),
     getChannelsTool(slackClient),
     getUsersTool(slackClient),
     getChannelHistoryTool(slackClient),
     searchMessagesTool(slackClient),
-    readFrontendLadisaiTool(slackClient),
+    readFrontendLadisaiTool(slackClient, userId),
   ];
 } 
