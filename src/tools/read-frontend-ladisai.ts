@@ -50,35 +50,51 @@ function getWorkdayName(daysBack: number): string {
 export function readFrontendLadisaiTool(slackClient: SlackClient): SlackTool {
   return {
     name: 'read_frontend_ladisai_messages',
-    description: 'Read messages from the frontend-ladisai channel for the previous workday',
+    description: 'Read latest messages from Neil Kuo (U047F3P6PUG) in the frontend-ladisai channel',
     inputSchema: {
       type: 'object',
       properties: {
         limit: {
           type: 'number',
-          description: 'Number of messages to retrieve (default 50)',
-          default: 50,
+          description: 'Number of messages to retrieve from channel for filtering (default 20)',
+          default: 20,
+        },
+        max_results: {
+          type: 'number',
+          description: 'Maximum number of Neil Kuo messages to return (default 5)',
+          default: 5,
         },
         include_user_info: {
           type: 'boolean',
-          description: 'Include user information for each message (default true)',
+          description: 'Include user information for messages (default true)',
           default: true,
         },
         manual_date: {
           type: 'string',
           description: 'Manual date override in YYYY-MM-DD format (optional)',
         },
+        all_time: {
+          type: 'boolean',
+          description: 'Search all time instead of just previous workday (default false)',
+          default: false,
+        },
       },
     },
     handler: async (args) => {
-      const { limit = 50, include_user_info = true, manual_date } = args;
+      const { limit = 100, max_results = 5, include_user_info = true, manual_date, all_time = false } = args;
       
-      // Hard-coded channel ID for frontend-ladisai
+      // Hard-coded channel ID for frontend-ladisai and Neil Kuo's user ID
       const FRONTEND_LADISAI_CHANNEL_ID = 'CPQ1Y03HC';
+      const NEIL_KUO_USER_ID = 'U047F3P6PUG';
       
-      let oldest: string, latest: string, targetDateName: string;
+      let oldest: string | undefined, latest: string | undefined, targetDateName: string;
       
-      if (manual_date) {
+      if (all_time) {
+        // Search all time
+        oldest = undefined;
+        latest = undefined;
+        targetDateName = 'all time';
+      } else if (manual_date) {
         // Manual date override
         const targetDate = new Date(manual_date);
         const startOfDay = new Date(targetDate);
@@ -112,7 +128,17 @@ export function readFrontendLadisaiTool(slackClient: SlackClient): SlackTool {
           throw new Error(`Failed to get frontend-ladisai messages: ${response.error}`);
         }
 
-        const messages = response.messages?.map(message => {
+        // Filter messages from Neil Kuo only
+        const neilKuoMessages = response.messages?.filter(message => 
+          message.user === NEIL_KUO_USER_ID
+        ) || [];
+
+        // Sort by timestamp (newest first) and limit results
+        const sortedMessages = neilKuoMessages
+          .sort((a, b) => parseFloat(b.ts || '0') - parseFloat(a.ts || '0'))
+          .slice(0, max_results);
+
+        const processedMessages = sortedMessages.map(message => {
           const baseMessage = {
             ts: message.ts,
             user: message.user,
@@ -127,49 +153,42 @@ export function readFrontendLadisaiTool(slackClient: SlackClient): SlackTool {
           };
 
           return baseMessage;
-        }) || [];
+        });
 
         // Get user info if requested
-        let enrichedMessages = messages;
-        if (include_user_info && messages.length > 0) {
-          const userCache = new Map();
-          
-          for (const message of messages) {
-            if (message.user && !userCache.has(message.user)) {
-              try {
-                const userInfo = await slackClient.getUserInfo(message.user);
-                if (userInfo.ok) {
-                  userCache.set(message.user, {
-                    real_name: userInfo.user?.real_name,
-                    display_name: userInfo.user?.profile?.display_name,
-                    name: userInfo.user?.name,
-                  });
-                }
-              } catch (error) {
-                // If we can't get user info, continue without it
-                console.error(`Failed to get user info for ${message.user}:`, error);
-              }
-            }
-          }
+        let enrichedMessages = processedMessages;
+        if (include_user_info && processedMessages.length > 0) {
+          try {
+            const userInfo = await slackClient.getUserInfo(NEIL_KUO_USER_ID);
+            const userDetails = userInfo.ok ? {
+              real_name: userInfo.user?.real_name,
+              display_name: userInfo.user?.profile?.display_name,
+              name: userInfo.user?.name,
+            } : null;
 
-          enrichedMessages = messages.map(message => ({
-            ...message,
-            user_info: message.user ? userCache.get(message.user) : null,
-          }));
+            enrichedMessages = processedMessages.map(message => ({
+              ...message,
+              user_info: userDetails,
+            }));
+          } catch (error) {
+            console.error(`Failed to get user info for ${NEIL_KUO_USER_ID}:`, error);
+          }
         }
 
         return {
           success: true,
           channel: 'frontend-ladisai',
           channel_id: FRONTEND_LADISAI_CHANNEL_ID,
+          target_user: 'Neil Kuo (U047F3P6PUG)',
           target_date: targetDateName,
-          time_range: {
+          time_range: oldest && latest ? {
             oldest: new Date(parseFloat(oldest) * 1000).toLocaleString(),
             latest: new Date(parseFloat(latest) * 1000).toLocaleString(),
-          },
+          } : 'All time',
           messages: enrichedMessages,
           total: enrichedMessages.length,
-          message: `Successfully retrieved ${enrichedMessages.length} messages from frontend-ladisai for ${targetDateName}`,
+          total_channel_messages: response.messages?.length || 0,
+          message: `Successfully retrieved ${enrichedMessages.length} messages from Neil Kuo in frontend-ladisai for ${targetDateName}`,
         };
       } catch (error) {
         return {
@@ -177,6 +196,7 @@ export function readFrontendLadisaiTool(slackClient: SlackClient): SlackTool {
           error: error instanceof Error ? error.message : String(error),
           channel: 'frontend-ladisai',
           channel_id: FRONTEND_LADISAI_CHANNEL_ID,
+          target_user: 'Neil Kuo (U047F3P6PUG)',
           target_date: targetDateName,
         };
       }
